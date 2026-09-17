@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ฟิสิกส์: เรื่อง อัตราเร็ว (Speed)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { kanit: ['Kanit', 'sans-serif'] },
+        colors: {
+          brand: { 50:'#eef2ff',100:'#e0e7ff',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca' }
+        },
+        keyframes: {
+          fadeSlide: { '0%':{opacity:0, transform:'translateY(12px)'}, '100%':{opacity:1, transform:'translateY(0)'} },
+          pop: { '0%':{transform:'scale(0.9)'}, '60%':{transform:'scale(1.03)'}, '100%':{transform:'scale(1)'} },
+          shake: { '0%,100%':{transform:'translateX(0)'}, '25%':{transform:'translateX(-6px)'}, '75%':{transform:'translateX(6px)'} }
+        },
+        animation: {
+          fadeSlide: 'fadeSlide .45s ease-out',
+          pop: 'pop .35s ease-out',
+          shake: 'shake .4s ease-in-out'
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body{font-family:'Kanit',sans-serif;}
+  .screen{animation:fadeSlide .45s ease-out;}
+  .triangle-wrap{clip-path:polygon(50% 0%, 0% 100%, 100% 100%);}
+  ::-webkit-scrollbar{height:6px;width:6px;}
+  ::-webkit-scrollbar-thumb{background:#c7d2fe;border-radius:10px;}
+  .car-track{position:relative;overflow:hidden;}
+  #car{position:absolute; bottom:8px; left:0; transition:left linear; font-size:2.2rem;}
+</style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen text-gray-800">
+
+<!-- HEADER -->
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-indigo-100 shadow-sm">
+  <div class="max-w-5xl mx-auto px-4 py-3">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">⚡</span>
+        <div>
+          <h1 class="text-base sm:text-xl font-semibold text-indigo-700 leading-tight">ฟิสิกส์: เรื่อง อัตราเร็ว (Speed)</h1>
+          <p class="text-xs text-gray-400">Speed = Distance ÷ Time</p>
+        </div>
+      </div>
+      <div class="text-right hidden sm:block">
+        <span class="text-xs text-gray-400">ความคืบหน้า</span>
+        <div class="text-lg font-bold text-indigo-600" id="progress-pct">0%</div>
+      </div>
+    </div>
+    <!-- Progress bar -->
+    <div class="w-full h-2.5 bg-indigo-100 rounded-full overflow-hidden">
+      <div id="progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-700" style="width:0%"></div>
+    </div>
+    <!-- Step nav -->
+    <div class="flex justify-between mt-3 text-[10px] sm:text-xs" id="step-nav"></div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-6 pb-16">
+
+  <!-- ===================== SCREEN 1: INSTRUCTION ===================== -->
+  <section id="screen-instruction" class="screen">
+    <div class="bg-white rounded-3xl shadow-lg p-6 sm:p-10 border border-indigo-100">
+      <div class="text-center mb-6">
+        <span class="inline-block text-5xl mb-3">🚗💨</span>
+        <h2 class="text-2xl font-bold text-indigo-700">ยินดีต้อนรับสู่บทเรียน "อัตราเร็ว"</h2>
+        <p class="text-gray-500 mt-1">เรียนรู้แนวคิดการเคลื่อนที่ผ่านสูตร v = s/t อย่างสนุกและเข้าใจง่าย</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4 mb-6">
+        <div class="bg-indigo-50 rounded-2xl p-5">
+          <h3 class="font-semibold text-indigo-700 mb-2 flex items-center gap-2">🎯 จุดประสงค์การเรียนรู้</h3>
+          <ul class="text-sm text-gray-600 space-y-1.5 list-disc list-inside">
+            <li>อธิบายความหมายของระยะทาง เวลา และอัตราเร็ว</li>
+            <li>ใช้สูตร v = s/t คำนวณโจทย์ได้ถูกต้อง</li>
+            <li>แปลงหน่วยอัตราเร็วระหว่าง km/h และ m/s</li>
+            <li>ประยุกต์ใช้กับสถานการณ์ในชีวิตประจำวัน</li>
+          </ul>
+        </div>
+        <div class="bg-purple-50 rounded-2xl p-5">
+          <h3 class="font-semibold text-purple-700 mb-2 flex items-center gap-2">📋 เกณฑ์การประเมิน</h3>
+          <ul class="text-sm text-gray-600 space-y-1.5 list-disc list-inside">
+            <li>แบบทดสอบก่อนเรียน 10 ข้อ (ไม่นับคะแนน)</li>
+            <li>แบบทดสอบหลังเรียน 10 ข้อ</li>
+            <li><b>เกณฑ์ผ่าน: 70% (7 คะแนนขึ้นไปจาก 10 คะแนน)</b></li>
+            <li>รับใบประกาศเมื่อผ่านเกณฑ์</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 text-sm text-yellow-700 mb-6 flex gap-2">
+        <span>💡</span>
+        <p>ขั้นตอนการเรียน: คำชี้แจง → ทดสอบก่อนเรียน → ใบความรู้ → กิจกรรม → ทดสอบหลังเรียน & สรุปผล กรุณาทำตามลำดับให้ครบทุกขั้นตอน</p>
+      </div>
+
+      <div class="text-center">
+        <button onclick="startPreTestFlow()" class="px-8 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5">
+          เริ่มทำแบบทดสอบก่อนเรียน →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN 2: PRE-TEST ===================== -->
+  <section id="screen-pretest" class="screen hidden">
+    <div id="pre-quiz-panel" class="bg-white rounded-3xl shadow-lg p-5 sm:p-8 border border-indigo-100">
+      <h2 class="text-xl font-bold text-indigo-700 mb-4">📝 แบบทดสอบก่อนเรียน</h2>
+      <div id="pre-quiz-body"></div>
+    </div>
+    <div id="pre-result-panel" class="hidden bg-white rounded-3xl shadow-lg p-6 sm:p-10 border border-indigo-100 text-center">
+      <span class="text-5xl">🎉</span>
+      <h2 class="text-xl font-bold text-indigo-700 mt-3">ทำแบบทดสอบก่อนเรียนเสร็จแล้ว!</h2>
+      <p class="text-gray-500 mt-1">คะแนนของคุณ (ผลนี้จะถูกนำไปเทียบกับหลังเรียน)</p>
+      <div class="text-5xl font-extrabold text-indigo-600 my-4" id="pre-score-display">0/10</div>
+      <button onclick="goToScreen('knowledge')" class="px-8 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5">
+        เข้าสู่เนื้อหาใบความรู้ →
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN 3: KNOWLEDGE HUB ===================== -->
+  <section id="screen-knowledge" class="screen hidden">
+    <div class="bg-white rounded-3xl shadow-lg p-5 sm:p-8 border border-indigo-100">
+      <h2 class="text-xl font-bold text-indigo-700 mb-4">📘 ใบความรู้: อัตราเร็ว</h2>
+
+      <div class="flex gap-2 overflow-x-auto pb-2 mb-5" id="kh-tabs">
+        <button data-tab="a" class="kh-tab-btn whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white">นิยามและแนวคิด</button>
+        <button data-tab="b" class="kh-tab-btn whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium bg-indigo-50 text-indigo-600">สามเหลี่ยมสูตร</button>
+        <button data-tab="c" class="kh-tab-btn whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium bg-indigo-50 text-indigo-600">แปลงหน่วย</button>
+        <button data-tab="d" class="kh-tab-btn whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium bg-indigo-50 text-indigo-600">ตัวอย่างโจทย์</button>
+      </div>
+
+      <!-- TAB A -->
+      <div id="kh-tab-a" class="kh-tab-content space-y-4">
+        <div class="grid sm:grid-cols-3 gap-3">
+          <div class="bg-indigo-50 rounded-2xl p-4"><div class="text-2xl mb-1">📏</div><h4 class="font-semibold text-indigo-700">ระยะทาง (s)</h4><p class="text-sm text-gray-600 mt-1">ความยาวเส้นทางที่วัตถุเคลื่อนที่ได้ หน่วย: เมตร (m)</p></div>
+          <div class="bg-purple-50 rounded-2xl p-4"><div class="text-2xl mb-1">⏱️</div><h4 class="font-semibold text-purple-700">เวลา (t)</h4><p class="text-sm text-gray-600 mt-1">ช่วงเวลาที่ใช้ในการเคลื่อนที่ หน่วย: วินาที (s)</p></div>
+          <div class="bg-pink-50 rounded-2xl p-4"><div class="text-2xl mb-1">🚀</div><h4 class="font-semibold text-pink-700">อัตราเร็ว (v)</h4><p class="text-sm text-gray-600 mt-1">ระยะทางที่เคลื่อนที่ได้ในหนึ่งหน่วยเวลา หน่วย: m/s</p></div>
+        </div>
+        <div class="bg-gray-50 rounded-2xl p-4 text-sm text-gray-600">
+          <p><b>สรุป:</b> อัตราเร็ว คือ ปริมาณสเกลาร์ (มีแต่ขนาด ไม่มีทิศทาง) ที่บอกว่าวัตถุเคลื่อนที่ได้เร็วหรือช้าเพียงใด คำนวณจากระยะทางทั้งหมดหารด้วยเวลาที่ใช้ทั้งหมด</p>
+        </div>
+      </div>
+
+      <!-- TAB B -->
+      <div id="kh-tab-b" class="kh-tab-content hidden">
+        <p class="text-sm text-gray-500 mb-4 text-center">👆 คลิกที่ตัวแปรบนสามเหลี่ยม เพื่อดูสูตรที่เกี่ยวข้อง</p>
+        <div class="flex flex-col items-center">
+          <div class="relative w-64 h-56">
+            <div class="triangle-wrap absolute inset-0 bg-gradient-to-b from-indigo-200 to-purple-200"></div>
+            <div class="absolute left-0 right-0 top-[38%] h-[2px] bg-white"></div>
+            <div class="absolute left-1/2 top-[38%] bottom-0 w-[2px] bg-white"></div>
+            <button onclick="showFormula('v')" class="absolute top-3 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-white shadow-lg font-bold text-xl text-indigo-700 hover:scale-110 transition">v</button>
+            <button onclick="showFormula('s')" class="absolute bottom-3 left-6 w-14 h-14 rounded-full bg-white shadow-lg font-bold text-xl text-purple-700 hover:scale-110 transition">s</button>
+            <button onclick="showFormula('t')" class="absolute bottom-3 right-6 w-14 h-14 rounded-full bg-white shadow-lg font-bold text-xl text-pink-700 hover:scale-110 transition">t</button>
+          </div>
+          <div id="formula-display" class="mt-6 bg-indigo-50 rounded-2xl px-8 py-5 text-center animate-pop">
+            <p class="text-3xl font-extrabold text-indigo-700">v = s ÷ t</p>
+            <p class="text-sm text-gray-500 mt-2">อัตราเร็ว = ระยะทาง ÷ เวลา</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB C -->
+      <div id="kh-tab-c" class="kh-tab-content hidden">
+        <div class="bg-indigo-50 rounded-2xl p-5 max-w-md mx-auto">
+          <h4 class="font-semibold text-indigo-700 mb-3 text-center">🔄 เครื่องมือแปลงหน่วยอัตราเร็ว</h4>
+          <div class="mb-3">
+            <label class="text-sm text-gray-600">กิโลเมตรต่อชั่วโมง (km/h)</label>
+            <input id="kmh-input" type="number" oninput="convertFromKmh()" placeholder="0" class="w-full mt-1 px-4 py-2.5 rounded-xl border-2 border-indigo-200 focus:border-indigo-500 outline-none text-lg font-semibold">
+          </div>
+          <div class="text-center text-indigo-400 text-xl mb-3">⇅ ÷3.6 / ×3.6</div>
+          <div>
+            <label class="text-sm text-gray-600">เมตรต่อวินาที (m/s)</label>
+            <input id="ms-input" type="number" oninput="convertFromMs()" placeholder="0" class="w-full mt-1 px-4 py-2.5 rounded-xl border-2 border-purple-200 focus:border-purple-500 outline-none text-lg font-semibold">
+          </div>
+          <div class="flex flex-wrap gap-2 mt-4 justify-center">
+            <button onclick="presetKmh(30)" class="px-3 py-1.5 text-xs rounded-lg bg-white border border-indigo-200 hover:bg-indigo-100">30 km/h</button>
+            <button onclick="presetKmh(60)" class="px-3 py-1.5 text-xs rounded-lg bg-white border border-indigo-200 hover:bg-indigo-100">60 km/h</button>
+            <button onclick="presetKmh(90)" class="px-3 py-1.5 text-xs rounded-lg bg-white border border-indigo-200 hover:bg-indigo-100">90 km/h</button>
+            <button onclick="presetKmh(120)" class="px-3 py-1.5 text-xs rounded-lg bg-white border border-indigo-200 hover:bg-indigo-100">120 km/h</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB D -->
+      <div id="kh-tab-d" class="kh-tab-content hidden space-y-3">
+        <div class="border border-indigo-100 rounded-2xl p-4">
+          <p class="font-medium text-gray-800">🧩 โจทย์ที่ 1: รถยนต์เคลื่อนที่ระยะทาง 240 กิโลเมตร ใช้เวลา 3 ชั่วโมง จงหาอัตราเร็ว</p>
+          <button onclick="toggleSolution('sol1')" class="text-sm text-indigo-600 font-medium mt-2 hover:underline">ดูวิธีทำ ▾</button>
+          <div id="sol1" class="hidden mt-3 bg-indigo-50 rounded-xl p-4 text-sm text-gray-700 space-y-1">
+            <p><b>Step 1:</b> กำหนดตัวแปร s = 240 km, t = 3 h</p>
+            <p><b>Step 2:</b> แทนค่าในสูตร v = s ÷ t</p>
+            <p><b>Step 3:</b> v = 240 ÷ 3 = 80</p>
+            <p><b>สรุป:</b> อัตราเร็ว = <b>80 km/h</b></p>
+          </div>
+        </div>
+        <div class="border border-indigo-100 rounded-2xl p-4">
+          <p class="font-medium text-gray-800">🧩 โจทย์ที่ 2: นักเรียนวิ่งได้ระยะทาง 400 เมตร ในเวลา 50 วินาที จงหาอัตราเร็วเป็น m/s และ km/h</p>
+          <button onclick="toggleSolution('sol2')" class="text-sm text-indigo-600 font-medium mt-2 hover:underline">ดูวิธีทำ ▾</button>
+          <div id="sol2" class="hidden mt-3 bg-indigo-50 rounded-xl p-4 text-sm text-gray-700 space-y-1">
+            <p><b>Step 1:</b> s = 400 m, t = 50 s</p>
+            <p><b>Step 2:</b> v = s ÷ t = 400 ÷ 50 = 8 m/s</p>
+            <p><b>Step 3:</b> แปลงเป็น km/h → 8 × 3.6 = 28.8 km/h</p>
+            <p><b>สรุป:</b> อัตราเร็ว = <b>8 m/s หรือ 28.8 km/h</b></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-8">
+        <button onclick="completeKnowledge()" class="px-8 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5">
+          ไปทำกิจกรรมการเรียนรู้ →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN 4: ACTIVITY ===================== -->
+  <section id="screen-activity" class="screen hidden">
+    <div class="bg-white rounded-3xl shadow-lg p-5 sm:p-8 border border-indigo-100 mb-5">
+      <h2 class="text-xl font-bold text-indigo-700 mb-1">🎮 กิจกรรม: จำลองการเคลื่อนที่</h2>
+      <p class="text-sm text-gray-500 mb-5">ปรับระยะทางและเวลา แล้วดูรถเคลื่อนที่ตามอัตราเร็วที่คำนวณได้</p>
+
+      <div class="grid sm:grid-cols-2 gap-5 mb-5">
+        <div>
+          <label class="text-sm font-medium text-gray-600">ระยะทาง s = <span id="s-val" class="text-indigo-600 font-bold">100</span> เมตร</label>
+          <input id="s-slider" type="range" min="10" max="500" value="100" step="10" class="w-full accent-indigo-600" oninput="updateSim()">
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-600">เวลา t = <span id="t-val" class="text-purple-600 font-bold">10</span> วินาที</label>
+          <input id="t-slider" type="range" min="1" max="60" value="10" step="1" class="w-full accent-purple-600" oninput="updateSim()">
+        </div>
+      </div>
+
+      <div class="bg-indigo-50 rounded-2xl p-4 flex flex-wrap justify-around gap-3 mb-5 text-center">
+        <div><p class="text-xs text-gray-500">อัตราเร็ว</p><p class="text-2xl font-extrabold text-indigo-700" id="v-ms">10.00 m/s</p></div>
+        <div><p class="text-xs text-gray-500">เทียบเท่า</p><p class="text-2xl font-extrabold text-purple-700" id="v-kmh">36.00 km/h</p></div>
+      </div>
+
+      <div class="car-track bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl h-20 border-2 border-dashed border-emerald-300">
+        <div id="car">🚗</div>
+      </div>
+      <div class="text-center mt-4">
+        <button onclick="playCarAnimation()" class="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold shadow transition">▶ เล่นแอนิเมชัน</button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-lg p-5 sm:p-8 border border-indigo-100 mb-5">
+      <h3 class="text-lg font-bold text-indigo-700 mb-1">🧩 เกมจับคู่: สัญลักษณ์กับความหมาย</h3>
+      <p class="text-sm text-gray-500 mb-4">คลิกเลือก 1 รายการจากซ้าย แล้วคลิกคู่ที่ถูกต้องจากขวา</p>
+      <div class="grid grid-cols-2 gap-4">
+        <div id="match-left" class="space-y-2"></div>
+        <div id="match-right" class="space-y-2"></div>
+      </div>
+      <p id="match-status" class="text-center text-sm text-emerald-600 font-medium mt-4 hidden">🎉 จับคู่ครบถูกต้องทั้งหมดแล้ว!</p>
+    </div>
+
+    <div class="text-center">
+      <button onclick="completeActivity()" class="px-8 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5">
+        ไปทำแบบทดสอบหลังเรียน →
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN 5: POST-TEST & DASHBOARD ===================== -->
+  <section id="screen-posttest" class="screen hidden">
+    <div id="post-quiz-panel" class="bg-white rounded-3xl shadow-lg p-5 sm:p-8 border border-indigo-100">
+      <h2 class="text-xl font-bold text-indigo-700 mb-4">📝 แบบทดสอบหลังเรียน</h2>
+      <div id="post-quiz-body"></div>
+    </div>
+
+    <div id="dashboard-panel" class="hidden space-y-5">
+      <div class="bg-white rounded-3xl shadow-lg p-6 sm:p-8 border border-indigo-100 text-center">
+        <span id="dash-emoji" class="text-5xl">🏆</span>
+        <h2 class="text-xl font-bold text-indigo-700 mt-3">สรุปผลการเรียนรู้</h2>
+        <p id="dash-status" class="text-lg font-semibold mt-1"></p>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-lg p-6 sm:p-8 border border-indigo-100">
+        <h3 class="font-semibold text-indigo-700 mb-4">📊 เปรียบเทียบคะแนนก่อน-หลังเรียน</h3>
+        <canvas id="score-chart" height="140"></canvas>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-lg p-6 sm:p-8 border border-indigo-100">
+        <h3 class="font-semibold text-indigo-700 mb-4">📖 เฉลยและคำอธิบาย (แบบทดสอบหลังเรียน)</h3>
+        <div id="review-list" class="space-y-3"></div>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-3">
+        <button onclick="replayLesson()" class="px-6 py-3 rounded-2xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold transition">🔄 เริ่มทำใหม่</button>
+        <button onclick="downloadCertificate()" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-semibold shadow-lg transition">🏅 ดาวน์โหลดใบประกาศ</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ===================== DATA ===================== */
+const PRETEST_QUESTIONS = [
+ {q:"อัตราเร็ว (Speed) มีความหมายตรงกับข้อใด",options:["ระยะทางที่วัตถุเคลื่อนที่ได้ในหนึ่งหน่วยเวลา","การเปลี่ยนตำแหน่งของวัตถุ","แรงที่กระทำต่อวัตถุ","มวลของวัตถุที่เคลื่อนที่"],correct:0,explain:"อัตราเร็ว คือ ระยะทางที่เคลื่อนที่ได้ต่อหนึ่งหน่วยเวลา"},
+ {q:"สูตรที่ใช้คำนวณอัตราเร็วคือข้อใด",options:["v = s × t","v = s / t","v = t / s","v = s + t"],correct:1,explain:"v = s/t คือ อัตราเร็ว = ระยะทาง หารด้วย เวลา"},
+ {q:"หน่วยมาตรฐาน (SI) ของอัตราเร็วคือข้อใด",options:["km/h","m/s","cm/min","mile/h"],correct:1,explain:"หน่วย SI ของอัตราเร็วคือ เมตรต่อวินาที (m/s)"},
+ {q:"รถยนต์คันหนึ่งเคลื่อนที่ได้ระยะทาง 150 เมตร ในเวลา 30 วินาที อัตราเร็วเฉลี่ยเท่ากับข้อใด",options:["3 m/s","5 m/s","4.5 m/s","180 m/s"],correct:1,explain:"v = 150/30 = 5 m/s"},
+ {q:"การแปลงหน่วย 72 km/h ให้เป็น m/s มีค่าเท่ากับข้อใด",options:["72 m/s","25.9 m/s","20 m/s","15 m/s"],correct:2,explain:"72 ÷ 3.6 = 20 m/s"},
+ {q:"การแปลงหน่วย 15 m/s ให้เป็น km/h มีค่าเท่ากับข้อใด",options:["15 km/h","54 km/h","4.17 km/h","30 km/h"],correct:1,explain:"15 × 3.6 = 54 km/h"},
+ {q:"อัตราเร็วจัดเป็นปริมาณชนิดใด",options:["ปริมาณเวกเตอร์ (มีทั้งขนาดและทิศทาง)","ปริมาณสเกลาร์ (มีแต่ขนาด ไม่มีทิศทาง)","ปริมาณคงที่เสมอ","ปริมาณที่วัดไม่ได้"],correct:1,explain:"อัตราเร็วเป็นปริมาณสเกลาร์ ไม่มีทิศทาง"},
+ {q:"ถ้าวัตถุใช้เวลาในการเคลื่อนที่นานขึ้น แต่ระยะทางที่เคลื่อนที่ได้เท่าเดิม อัตราเร็วของวัตถุจะเป็นอย่างไร",options:["เพิ่มขึ้น","ลดลง","คงที่","เป็นศูนย์"],correct:1,explain:"เมื่อ t เพิ่มขึ้นแต่ s คงที่ v จะลดลง (v=s/t)"},
+ {q:"อุปกรณ์ที่ใช้วัดอัตราเร็วของรถยนต์ขณะเคลื่อนที่ เรียกว่าอะไร",options:["เทอร์โมมิเตอร์","บารอมิเตอร์","สปีดโดมิเตอร์ (มาตรวัดอัตราเร็ว)","แอมมิเตอร์"],correct:2,explain:"speedometer คือมาตรวัดอัตราเร็วของยานพาหนะ"},
+ {q:"นักวิ่งคนหนึ่งวิ่งได้ระยะทาง 5 กิโลเมตร ในเวลา 30 นาที อัตราเร็วเฉลี่ยของนักวิ่งเท่ากับกี่กิโลเมตรต่อชั่วโมง",options:["5 km/h","10 km/h","15 km/h","150 km/h"],correct:1,explain:"30 นาที = 0.5 ชม. → v = 5/0.5 = 10 km/h"}
+];
+
+const POSTTEST_QUESTIONS = [
+ {q:"ข้อใดคือความหมายของอัตราเร็ว",options:["ปริมาณที่บอกทิศทางการเคลื่อนที่","ระยะทางทั้งหมดที่เคลื่อนที่ได้ในหนึ่งหน่วยเวลา","เวลาที่ใช้ในการเคลื่อนที่","พลังงานที่ใช้ในการเคลื่อนที่"],correct:1,explain:"อัตราเร็ว คือ ระยะทางที่เคลื่อนที่ได้ในหนึ่งหน่วยเวลา"},
+ {q:"จากสูตร v = s/t ตัวแปร s หมายถึงอะไร",options:["เวลา","อัตราเร็ว","ระยะทาง","ความเร่ง"],correct:2,explain:"s คือ ระยะทาง (distance)"},
+ {q:"หน่วยใดต่อไปนี้ไม่ใช่หน่วยของอัตราเร็ว",options:["m/s","km/h","kg/m³","cm/s"],correct:2,explain:"kg/m³ เป็นหน่วยของความหนาแน่น ไม่ใช่อัตราเร็ว"},
+ {q:"เครื่องบินลำหนึ่งบินได้ระยะทาง 900 กิโลเมตร ในเวลา 1.5 ชั่วโมง อัตราเร็วเฉลี่ยเท่ากับข้อใด",options:["450 km/h","600 km/h","900 km/h","1350 km/h"],correct:1,explain:"v = 900 ÷ 1.5 = 600 km/h"},
+ {q:"แปลง 90 km/h เป็น m/s ได้เท่ากับข้อใด",options:["25 m/s","32.4 m/s","90 m/s","9 m/s"],correct:0,explain:"90 ÷ 3.6 = 25 m/s"},
+ {q:"แปลง 8 m/s เป็น km/h ได้เท่ากับข้อใด",options:["8 km/h","2.2 km/h","28.8 km/h","80 km/h"],correct:2,explain:"8 × 3.6 = 28.8 km/h"},
+ {q:"ข้อใดกล่าวถูกต้องเกี่ยวกับอัตราเร็ว",options:["มีทิศทางเสมอ","เป็นปริมาณเวกเตอร์","เป็นปริมาณสเกลาร์ ไม่มีทิศทาง","วัดเป็นหน่วยนิวตัน"],correct:2,explain:"อัตราเร็วเป็นปริมาณสเกลาร์ มีแต่ขนาด ไม่มีทิศทาง"},
+ {q:"ถ้าเวลาที่ใช้เคลื่อนที่คงเดิม แต่ระยะทางที่เคลื่อนที่ได้เพิ่มขึ้น อัตราเร็วจะเป็นอย่างไร",options:["เพิ่มขึ้น","ลดลง","คงที่","เป็นศูนย์"],correct:0,explain:"เมื่อ s เพิ่มขึ้นแต่ t คงที่ v จะเพิ่มขึ้น"},
+ {q:"หากต้องการหาระยะทาง (s) เมื่อทราบอัตราเร็ว (v) และเวลา (t) ต้องใช้สูตรใด",options:["s = v/t","s = v × t","s = t/v","s = v + t"],correct:1,explain:"จาก v=s/t จัดรูปใหม่ได้ s = v × t"},
+ {q:"จักรยานคันหนึ่งเคลื่อนที่ด้วยอัตราเร็วคงที่ 4 m/s เป็นเวลา 20 วินาที จะเคลื่อนที่ได้ระยะทางเท่าใด",options:["5 เมตร","24 เมตร","80 เมตร","100 เมตร"],correct:2,explain:"s = v × t = 4 × 20 = 80 เมตร"}
+];
+
+/* ===================== STATE ===================== */
+const steps = [
+ {id:'instruction', label:'คำชี้แจง'},
+ {id:'pretest', label:'ก่อนเรียน'},
+ {id:'knowledge', label:'ใบความรู้'},
+ {id:'activity', label:'กิจกรรม'},
+ {id:'posttest', label:'หลังเรียน'}
+];
+let unlocked = [true,false,false,false,false];
+let completed = [false,false,false,false,false];
+let currentScreen = 'instruction';
+
+let preIndex=0, preAnswers=new Array(10).fill(null), preScore=null, preTimer=0, preInterval=null;
+let postIndex=0, postAnswers=new Array(10).fill(null), postScore=null, postTimer=0, postInterval=null;
+
+/* ===================== NAV / PROGRESS ===================== */
+function renderStepNav(){
+  const nav = document.getElementById('step-nav');
+  nav.innerHTML = steps.map((s,i)=>{
+    const active = currentScreen===s.id;
+    const done = completed[i];
+    const canClick = unlocked[i];
+    return `<button ${canClick?`onclick="goToScreen('${s.id}')"`:'disabled'} class="flex-1 flex flex-col items-center gap-1 ${canClick?'cursor-pointer':'cursor-not-allowed opacity-40'}">
+      <span class="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold ${done?'bg-emerald-500 text-white':active?'bg-indigo-600 text-white':'bg-indigo-100 text-indigo-400'}">${done?'✓':i+1}</span>
+      <span class="${active?'text-indigo-700 font-semibold':'text-gray-400'}">${s.label}</span>
+    </button>`;
+  }).join('');
+}
+
+function updateProgress(){
+  const pct = Math.round((completed.filter(Boolean).length/steps.length)*100);
+  document.getElementById('progress-bar').style.width = pct+'%';
+  document.getElementById('progress-pct').textContent = pct+'%';
+  renderStepNav();
+}
+
+function goToScreen(id){
+  if(!unlocked[steps.findIndex(s=>s.id===id)]) return;
+  document.querySelectorAll('main > section').forEach(sec=>sec.classList.add('hidden'));
+  document.getElementById('screen-'+id).classList.remove('hidden');
+  document.getElementById('screen-'+id).classList.add('screen');
+  currentScreen = id;
+  window.scrollTo({top:0, behavior:'smooth'});
+  updateProgress();
+}
+
+/* ===================== SCREEN 1 -> 2 ===================== */
+function startPreTestFlow(){
+  completed[0]=true; unlocked[1]=true;
+  goToScreen('pretest');
+  document.getElementById('pre-quiz-panel').classList.remove('hidden');
+  document.getElementById('pre-result-panel').classList.add('hidden');
+  preIndex=0; preAnswers=new Array(10).fill(null); preTimer=0;
+  clearInterval(preInterval);
+  preInterval=setInterval(()=>{preTimer++; const el=document.getElementById('pre-timer'); if(el) el.textContent='⏱ '+fmtTime(preTimer);},1000);
+  renderQuiz('pre');
+}
+
+function fmtTime(sec){
+  const m=String(Math.floor(sec/60)).padStart(2,'0');
+  const s=String(sec%60).padStart(2,'0');
+  return m+':'+s;
+}
+
+/* ===================== GENERIC QUIZ RENDER ===================== */
+function renderQuiz(type){
+  const questions = type==='pre'?PRETEST_QUESTIONS:POSTTEST_QUESTIONS;
+  const idx = type==='pre'?preIndex:postIndex;
+  const answers = type==='pre'?preAnswers:postAnswers;
+  const q = questions[idx];
+  const timerVal = type==='pre'?preTimer:postTimer;
+  const container = document.getElementById(type+'-quiz-body');
+  const letters=['ก','ข','ค','ง'];
+  container.innerHTML = `
+    <div class="mb-4 flex items-center justify-between">
+      <span class="text-sm font-semibold text-indigo-600">ข้อ ${idx+1}/10</span>
+      <span class="text-sm text-gray-500" id="${type}-timer">⏱ ${fmtTime(timerVal)}</span>
+    </div>
+    <div class="bg-indigo-50/60 rounded-2xl p-5 sm:p-6 mb-4 animate-fadeSlide">
+      <p class="text-base sm:text-lg font-medium text-gray-800 mb-4">${q.q}</p>
+      <div class="space-y-2.5">
+        ${q.options.map((opt,i)=>`
+          <button onclick="selectAnswer('${type}', ${i})" class="quiz-option w-full text-left px-4 py-3 rounded-xl border-2 transition ${answers[idx]===i?'border-indigo-500 bg-indigo-100':'border-gray-200 bg-white hover:border-indigo-300'}">
+            <span class="font-semibold mr-2 text-indigo-500">${letters[i]}.</span>${opt}
+          </button>`).join('')}
+      </div>
+    </div>
+    <div class="flex justify-between items-center">
+      <button ${idx===0?'disabled':''} onclick="stepQuestion('${type}',-1)" class="px-5 py-2 rounded-xl font-medium ${idx===0?'bg-gray-100 text-gray-300 cursor-not-allowed':'bg-gray-200 hover:bg-gray-300 text-gray-700'}">‹ ก่อนหน้า</button>
+      ${idx===9
+        ? `<button onclick="finishQuiz('${type}')" class="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold shadow transition">ส่งคำตอบ ✓</button>`
+        : `<button onclick="stepQuestion('${type}',1)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow transition">ถัดไป ›</button>`}
+    </div>
+    <div class="mt-4 flex gap-1.5 flex-wrap justify-center">
+      ${questions.map((_,i)=>`<span class="w-2.5 h-2.5 rounded-full ${answers[i]!==null?'bg-indigo-500':'bg-gray-200'} ${i===idx?'ring-2 ring-offset-1 ring-indigo-300':''}"></span>`).join('')}
+    </div>
+  `;
+}
+
+function selectAnswer(type, optionIndex){
+  if(type==='pre') preAnswers[preIndex]=optionIndex; else postAnswers[postIndex]=optionIndex;
+  renderQuiz(type);
+}
+function stepQuestion(type, dir){
+  if(type==='pre'){ preIndex=Math.min(9,Math.max(0,preIndex+dir)); } else { postIndex=Math.min(9,Math.max(0,postIndex+dir)); }
+  renderQuiz(type);
+}
+
+function finishQuiz(type){
+  const questions = type==='pre'?PRETEST_QUESTIONS:POSTTEST_QUESTIONS;
+  const answers = type==='pre'?preAnswers:postAnswers;
+  const score = answers.reduce((acc,a,i)=> acc + (a===questions[i].correct?1:0), 0);
+  if(type==='pre'){
+    preScore=score; clearInterval(preInterval);
+    document.getElementById('pre-quiz-panel').classList.add('hidden');
+    document.getElementById('pre-result-panel').classList.remove('hidden');
+    document.getElementById('pre-score-display').textContent = score+'/10';
+    completed[1]=true; unlocked[2]=true; updateProgress();
+  } else {
+    postScore=score; clearInterval(postInterval);
+    document.getElementById('post-quiz-panel').classList.add('hidden');
+    document.getElementById('dashboard-panel').classList.remove('hidden');
+    completed[4]=true; updateProgress();
+    renderDashboard();
+  }
+}
+
+/* ===================== SCREEN 3: KNOWLEDGE ===================== */
+document.addEventListener('click', e=>{
+  if(e.target.classList.contains('kh-tab-btn')){
+    document.querySelectorAll('.kh-tab-btn').forEach(b=>b.className='kh-tab-btn whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium bg-indigo-50 text-indigo-600');
+    e.target.className='kh-tab-btn whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white';
+    document.querySelectorAll('.kh-tab-content').forEach(c=>c.classList.add('hidden'));
+    document.getElementById('kh-tab-'+e.target.dataset.tab).classList.remove('hidden');
+  }
+});
+
+function showFormula(v){
+  const map={
+    v:{f:'v = s ÷ t',d:'อัตราเร็ว = ระยะทาง ÷ เวลา'},
+    s:{f:'s = v × t',d:'ระยะทาง = อัตราเร็ว × เวลา'},
+    t:{f:'t = s ÷ v',d:'เวลา = ระยะทาง ÷ อัตราเร็ว'}
+  };
+  const el = document.getElementById('formula-display');
+  el.classList.remove('animate-pop'); void el.offsetWidth; el.classList.add('animate-pop');
+  el.innerHTML = `<p class="text-3xl font-extrabold text-indigo-700">${map[v].f}</p><p class="text-sm text-gray-500 mt-2">${map[v].d}</p>`;
+}
+
+function toggleSolution(id){
+  document.getElementById(id).classList.toggle('hidden');
+}
+
+function convertFromKmh(){
+  const kmh = parseFloat(document.getElementById('kmh-input').value)||0;
+  document.getElementById('ms-input').value = (kmh/3.6).toFixed(3);
+}
+function convertFromMs(){
+  const ms = parseFloat(document.getElementById('ms-input').value)||0;
+  document.getElementById('kmh-input').value = (ms*3.6).toFixed(3);
+}
+function presetKmh(v){
+  document.getElementById('kmh-input').value=v;
+  convertFromKmh();
+}
+
+function completeKnowledge(){
+  completed[2]=true; unlocked[3]=true;
+  goToScreen('activity');
+  updateProgress();
+  initMatchGame();
+  updateSim();
+}
+
+/* ===================== SCREEN 4: ACTIVITY ===================== */
+function updateSim(){
+  const s = parseFloat(document.getElementById('s-slider').value);
+  const t = parseFloat(document.getElementById('t-slider').value);
+  document.getElementById('s-val').textContent = s;
+  document.getElementById('t-val').textContent = t;
+  const v = t>0 ? s/t : 0;
+  document.getElementById('v-ms').textContent = v.toFixed(2)+' m/s';
+  document.getElementById('v-kmh').textContent = (v*3.6).toFixed(2)+' km/h';
+}
+
+function playCarAnimation(){
+  updateSim();
+  const s = parseFloat(document.getElementById('s-slider').value);
+  const t = parseFloat(document.getElementById('t-slider').value);
+  const car = document.getElementById('car');
+  const track = car.parentElement;
+  const duration = Math.min(Math.max(t/6, 0.6), 6);
+  car.style.transition='none';
+  car.style.left='0px';
+  void car.offsetWidth;
+  car.style.transition=`left ${duration}s linear`;
+  car.style.left=(track.clientWidth-48)+'px';
+}
+window.addEventListener('resize', ()=>{ if(document.getElementById('car')) updateSim(); });
+
+const MATCH_PAIRS = [
+ {id:1,left:'v',right:'อัตราเร็ว (m/s)'},
+ {id:2,left:'s',right:'ระยะทาง (m)'},
+ {id:3,left:'t',right:'เวลา (s)'},
+ {id:4,left:'v = s ÷ t',right:'สูตรหาอัตราเร็ว'},
+ {id:5,left:'s = v × t',right:'สูตรหาระยะทาง'}
+];
+let matchSelectedLeft=null, matchSelectedRight=null, matchedIds=new Set();
+
+function shuffle(arr){ return [...arr].sort(()=>Math.random()-0.5); }
+
+function initMatchGame(){
+  matchedIds=new Set(); matchSelectedLeft=null; matchSelectedRight=null;
+  document.getElementById('match-status').classList.add('hidden');
+  const leftItems = MATCH_PAIRS;
+  const rightItems = shuffle(MATCH_PAIRS);
+  document.getElementById('match-left').innerHTML = leftItems.map(p=>
+    `<button data-id="${p.id}" onclick="selectMatch('left',${p.id})" class="match-btn-left w-full px-3 py-2.5 rounded-xl border-2 border-indigo-200 bg-white text-sm font-medium hover:border-indigo-400 transition">${p.left}</button>`
+  ).join('');
+  document.getElementById('match-right').innerHTML = rightItems.map(p=>
+    `<button data-id="${p.id}" onclick="selectMatch('right',${p.id})" class="match-btn-right w-full px-3 py-2.5 rounded-xl border-2 border-purple-200 bg-white text-sm font-medium hover:border-purple-400 transition">${p.right}</button>`
+  ).join('');
+}
+
+function selectMatch(side, id){
+  if(matchedIds.has(id) && side==='left') return;
+  const btn = document.querySelector(`.match-btn-${side}[data-id="${id}"]`);
+  if(btn.classList.contains('opacity-40')) return;
+  if(side==='left'){ matchSelectedLeft=id; document.querySelectorAll('.match-btn-left').forEach(b=>b.classList.remove('ring-2','ring-indigo-500')); btn.classList.add('ring-2','ring-indigo-500'); }
+  else { matchSelectedRight=id; document.querySelectorAll('.match-btn-right').forEach(b=>b.classList.remove('ring-2','ring-purple-500')); btn.classList.add('ring-2','ring-purple-500'); }
+
+  if(matchSelectedLeft && matchSelectedRight){
+    if(matchSelectedLeft===matchSelectedRight){
+      matchedIds.add(matchSelectedLeft);
+      document.querySelector(`.match-btn-left[data-id="${matchSelectedLeft}"]`).className='match-btn-left w-full px-3 py-2.5 rounded-xl border-2 border-emerald-400 bg-emerald-50 text-sm font-medium opacity-40';
+      document.querySelector(`.match-btn-right[data-id="${matchSelectedLeft}"]`).className='match-btn-right w-full px-3 py-2.5 rounded-xl border-2 border-emerald-400 bg-emerald-50 text-sm font-medium opacity-40';
+      if(matchedIds.size===MATCH_PAIRS.length){ document.getElementById('match-status').classList.remove('hidden'); }
+    } else {
+      [document.querySelector(`.match-btn-left[data-id="${matchSelectedLeft}"]`), document.querySelector(`.match-btn-right[data-id="${matchSelectedRight}"]`)].forEach(b=>{
+        b.classList.add('animate-shake','border-red-400');
+        setTimeout(()=>{ b.classList.remove('animate-shake','border-red-400','ring-2','ring-indigo-500','ring-purple-500'); },500);
+      });
+    }
+    matchSelectedLeft=null; matchSelectedRight=null;
+  }
+}
+
+function completeActivity(){
+  completed[3]=true; unlocked[4]=true;
+  goToScreen('posttest');
+  updateProgress();
+  document.getElementById('post-quiz-panel').classList.remove('hidden');
+  document.getElementById('dashboard-panel').classList.add('hidden');
+  postIndex=0; postAnswers=new Array(10).fill(null); postTimer=0;
+  clearInterval(postInterval);
+  postInterval=setInterval(()=>{postTimer++; const el=document.getElementById('post-timer'); if(el) el.textContent='⏱ '+fmtTime(postTimer);},1000);
+  renderQuiz('post');
+}
+
+/* ===================== SCREEN 5: DASHBOARD ===================== */
+let chartInstance=null;
+function renderDashboard(){
+  const passed = postScore>=7;
+  document.getElementById('dash-emoji').textContent = passed?'🏆':'💪';
+  document.getElementById('dash-status').innerHTML = passed
+    ? `<span class="text-emerald-600">ผ่านเกณฑ์การประเมิน! (${postScore}/10 คะแนน)</span>`
+    : `<span class="text-red-500">ยังไม่ผ่านเกณฑ์ (${postScore}/10 คะแนน) ลองทบทวนใบความรู้อีกครั้งนะ</span>`;
+
+  const ctx = document.getElementById('score-chart').getContext('2d');
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['ก่อนเรียน','หลังเรียน'],
+      datasets:[{
+        label:'คะแนน (เต็ม 10)',
+        data:[preScore??0, postScore??0],
+        backgroundColor:['#a5b4fc','#4f46e5'],
+        borderRadius:10,
+        maxBarThickness:70
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{y:{beginAtZero:true,max:10,ticks:{stepSize:1}}}
+    }
+  });
+
+  const letters=['ก','ข','ค','ง'];
+  document.getElementById('review-list').innerHTML = POSTTEST_QUESTIONS.map((q,i)=>{
+    const userAns = postAnswers[i];
+    const isCorrect = userAns===q.correct;
+    return `<div class="rounded-xl border-2 ${isCorrect?'border-emerald-200 bg-emerald-50':'border-red-200 bg-red-50'} p-4">
+      <p class="font-medium text-gray-800 mb-2">${i+1}. ${q.q}</p>
+      <p class="text-sm ${isCorrect?'text-emerald-700':'text-red-600'}">คำตอบของคุณ: ${userAns!=null?letters[userAns]+'. '+q.options[userAns]:'(ไม่ได้ตอบ)'} ${isCorrect?'✓':'✗'}</p>
+      ${!isCorrect?`<p class="text-sm text-emerald-700">คำตอบที่ถูกต้อง: ${letters[q.correct]}. ${q.options[q.correct]}</p>`:''}
+      <p class="text-xs text-gray-500 mt-1">💡 ${q.explain}</p>
+    </div>`;
+  }).join('');
+}
+
+function replayLesson(){
+  unlocked=[true,false,false,false,false];
+  completed=[false,false,false,false,false];
+  preScore=null; postScore=null;
+  preAnswers=new Array(10).fill(null); postAnswers=new Array(10).fill(null);
+  preIndex=0; postIndex=0;
+  document.getElementById('dashboard-panel').classList.add('hidden');
+  document.getElementById('post-quiz-panel').classList.remove('hidden');
+  goToScreen('instruction');
+  updateProgress();
+}
+
+function downloadCertificate(){
+  const name = prompt('กรอกชื่อ-นามสกุลสำหรับใบประกาศ:', 'นักเรียน') || 'นักเรียน';
+  const canvas = document.createElement('canvas');
+  canvas.width=1200; canvas.height=800;
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createLinearGradient(0,0,1200,800);
+  grad.addColorStop(0,'#eef2ff'); grad.addColorStop(1,'#f5f3ff');
+  ctx.fillStyle=grad; ctx.fillRect(0,0,1200,800);
+  ctx.strokeStyle='#6366f1'; ctx.lineWidth=10; ctx.strokeRect(30,30,1140,740);
+  ctx.strokeStyle='#c7d2fe'; ctx.lineWidth=3; ctx.strokeRect(50,50,1100,700);
+  ctx.fillStyle='#4338ca'; ctx.font='bold 46px Kanit, sans-serif'; ctx.textAlign='center';
+  ctx.fillText('ใบประกาศเกียรติคุณ', 600, 190);
+  ctx.font='24px Kanit, sans-serif'; ctx.fillStyle='#6366f1';
+  ctx.fillText('มอบให้เพื่อแสดงว่า', 600, 250);
+  ctx.font='bold 40px Kanit, sans-serif'; ctx.fillStyle='#1e1b4b';
+  ctx.fillText(name, 600, 330);
+  ctx.font='22px Kanit, sans-serif'; ctx.fillStyle='#4b5563';
+  ctx.fillText('ได้ผ่านการเรียนรู้บทเรียนฟิสิกส์ เรื่อง "อัตราเร็ว (Speed)"', 600, 400);
+  ctx.fillText('ด้วยคะแนนแบบทดสอบหลังเรียน '+(postScore??0)+' / 10 คะแนน', 600, 440);
+  ctx.font='bold 26px Kanit, sans-serif'; ctx.fillStyle= (postScore>=7)?'#059669':'#dc2626';
+  ctx.fillText((postScore>=7)?'ผลการประเมิน: ผ่านเกณฑ์ ✓':'ผลการประเมิน: ควรทบทวนเพิ่มเติม', 600, 490);
+  ctx.font='18px Kanit, sans-serif'; ctx.fillStyle='#9ca3af';
+  ctx.fillText('วันที่ '+new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}), 600, 650);
+  ctx.font='60px sans-serif'; ctx.fillText('⚡🚗', 600, 600);
+
+  const link = document.createElement('a');
+  link.download = 'certificate-speed-physics.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+/* ===================== INIT ===================== */
+updateProgress();
+</script>
+</body>
+</html>
